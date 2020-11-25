@@ -1,0 +1,6 @@
+peacetrue:
+  file:
+    base-path: /Users/xiayx/Documents/Projects/peacetrue-file/01-upload
+logging:
+  level:
+    root: debug

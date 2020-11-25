@@ -1,0 +1,10 @@
+apply plugin: 'org.springframework.boot'
+description '文件应用'
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'com.github.peacetrue:peacetrue-spring'
+    implementation project(":peacetrue-file-controller")
+    implementation project(":peacetrue-file-service-impl")
+}

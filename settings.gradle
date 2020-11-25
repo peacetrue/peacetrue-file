@@ -1,1 +1,6 @@
-rootProject.name = "peacetrue-template-gradle"
+rootProject.name = "peacetrue-file"
+include("peacetrue-file-service-api")
+include("peacetrue-file-service-impl")
+include("peacetrue-file-controller")
+include("peacetrue-file-app")
+include("peacetrue-file-client")

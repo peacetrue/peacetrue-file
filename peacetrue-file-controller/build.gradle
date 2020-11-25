@@ -1,0 +1,12 @@
+dependencies {
+    api 'org.slf4j:slf4j-api'
+
+//    implementation 'jakarta.activation:jakarta.activation-api:1.2.2'
+//    implementation("javax.activation:javax.activation-api:1.2.0")
+//    implementation 'com.sun.activation:javax.activation:1.2.0'
+
+    implementation("org.springframework:spring-context")
+    implementation("org.springframework:spring-webflux")
+    implementation project(":peacetrue-file-service-api")
+
+}

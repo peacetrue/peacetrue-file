@@ -10,29 +10,27 @@ buildscript {
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:1.0.6.RELEASE"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:2.3.3.RELEASE"
-        classpath "gradle.plugin.com.google.cloud.tools:jib-gradle-plugin:2.5.0"
     }
 }
 
 allprojects { project ->
 
-    group "com.github.peacetrue.template"
-    version "1.0.0-SNAPSHOT"
-    description "gradle模板"
+    group "com.github.peacetrue.file"
+    version "1.0.1-SNAPSHOT"
+    description "文件管理"
 
-    apply plugin: "java"
     apply plugin: "java-library"
+    sourceCompatibility = 9
+    targetCompatibility = 9
 
     repositories {
         mavenLocal()
+        mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url "https://repo.spring.io/plugins-release" }
-        mavenCentral()
     }
 
     apply plugin: "io.spring.dependency-management"
-    apply plugin: 'org.springframework.boot'
-    apply plugin: "com.google.cloud.tools.jib"
     dependencyManagement {
         imports {
             mavenBom "com.github.peacetrue:peacetrue-dependencies:2.0.0-SNAPSHOT"
@@ -66,30 +64,5 @@ allprojects { project ->
         useJUnitPlatform()
     }
 
-    jib {
-        from {
-            //使用本地镜像，依赖本地 docker
-            image = "docker://openjdk:11.0.8-jre"
-            //使用仓库镜像，速度慢
-            //image = "registry://docker.io/library/openjdk:11.0.8-jre"
-        }
-
-        to {
-            //上传到阿里云镜像仓库
-            image = "registry.cn-beijing.aliyuncs.com/peacetrue/$name"
-            //image = "registry-vpc.cn-beijing.aliyuncs.com/peacetrue/$name"
-            tags = [/*version,*/ 'latest']
-        }
-
-        container {
-            //环境变量 docker 启动时指定
-            //environment = ['SPRING_PROFILES_ACTIVE': 'prod']
-            jvmFlags = ['-Xmx256m', '-Xms128m', '-Xmn96m', '-Xss256k']
-            //CMD [jib.container.args]
-            //args = ['--spring.profiles.active=prod']
-            creationTime = 'USE_CURRENT_TIMESTAMP'
-        }
-
-    }
 
 }
