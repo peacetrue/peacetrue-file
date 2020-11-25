@@ -16,7 +16,7 @@ buildscript {
 allprojects { project ->
 
     group "com.github.peacetrue.file"
-    version "1.0.1-SNAPSHOT"
+    version "1.0.0-SNAPSHOT"
     description "文件管理"
 
     apply plugin: "java-library"
