@@ -47,10 +47,11 @@ public class FileController {
                 Files.createFile(absoluteFilePath);
                 return 0;
             }) : Mono.just(0);
-            return transitionMono.flatMap(ignored ->
-                    filePart.transferTo(absoluteFilePath)
-                            .thenReturn(new FileVO(filePart.filename(), relativeFilePath))
-            );
+            return transitionMono
+                    .flatMap(ignored -> Mono.fromCallable(() -> Files.size(absoluteFilePath)))
+                    .flatMap(fileSize -> filePart.transferTo(absoluteFilePath)
+                            .thenReturn(new FileVO(filePart.filename(), relativeFilePath, fileSize))
+                    );
         };
     }
 

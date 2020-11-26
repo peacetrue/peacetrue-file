@@ -17,7 +17,10 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class FileVO implements Serializable {
 
-    private String filename;
-    private String filePath;
+    private static final long serialVersionUID = 0L;
+
+    private String name;
+    private String path;
+    private Long sizes;
 
 }

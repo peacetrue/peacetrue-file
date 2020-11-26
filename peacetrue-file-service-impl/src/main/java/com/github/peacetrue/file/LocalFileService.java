@@ -74,7 +74,8 @@ public class LocalFileService implements FileService {
         Path path = Paths.get(filePath);
         if (Files.notExists(path)) Files.createFile(path);
         FileCopyUtils.copy(resource.getInputStream(), Files.newOutputStream(path));
-        return new FileVO(filename, filePath);
+        //return new FileVO(filename, filePath);
+        return null;
     }
 
 
