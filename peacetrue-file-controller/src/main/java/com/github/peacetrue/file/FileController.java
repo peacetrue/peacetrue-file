@@ -69,24 +69,32 @@ public class FileController {
         return files.flatMap(filePartHandler);
     }
 
-    @GetMapping("/{*filePath}")
-    public Mono<Void> download(ServerHttpResponse response, @PathVariable String filePath) {
-        return downloadLocalFile(response, fileService.getAbsoluteFilePath(filePath));
+    @GetMapping(value = "/{*filePath}")
+    public Mono<Void> download(ServerHttpResponse response,
+                               @PathVariable String filePath,
+                               @RequestHeader(name = "X-Requested-With", required = false) String requestedWithHeader,
+                               @RequestParam(name = "X-Requested-With", required = false) String requestedWithParam,
+                               String type) {
+        boolean isAjax = isAjax(requestedWithHeader) || isAjax(requestedWithParam);
+        return downloadLocalFile(response, fileService.getAbsoluteFilePath(filePath), isAjax, type);
     }
 
-    @GetMapping(value = "/{*filePath}", params = "type=preview")
-    public Mono<Void> preview(ServerHttpResponse response, @PathVariable String filePath) {
-        return previewLocalFile(response, fileService.getAbsoluteFilePath(filePath));
+    private static boolean isAjax(String requestedWith) {
+        return "XMLHttpRequest".equals(requestedWith);
     }
 
-    public static Mono<Void> downloadLocalFile(ServerHttpResponse response, String absoluteFilePath) {
+    public static final String DOWNLOAD_TYPE_PREVIEW = "preview";
+    public static final String DISPOSITION_TYPE_INLINE = "inline";
+    public static final String DISPOSITION_TYPE_ATTACHMENT = "attachment";
+
+    public static Mono<Void> downloadLocalFile(ServerHttpResponse response, String absoluteFilePath,
+                                               boolean isAjax, String type) {
         log.info("下载本地文件[{}]", absoluteFilePath);
-        return writeLocalFile(response, "attachment", absoluteFilePath);
-    }
-
-    public static Mono<Void> previewLocalFile(ServerHttpResponse response, String absoluteFilePath) {
-        log.info("预览本地文件[{}]", absoluteFilePath);
-        return writeLocalFile(response, "inline", absoluteFilePath);
+        String dispositionType = isAjax ? null : (
+                DOWNLOAD_TYPE_PREVIEW.equals(type)
+                        ? DISPOSITION_TYPE_INLINE
+                        : DISPOSITION_TYPE_ATTACHMENT);
+        return writeLocalFile(response, dispositionType, absoluteFilePath);
     }
 
     public static Mono<Void> writeLocalFile(ServerHttpResponse response, String dispositionType, String absoluteFilePath) {
@@ -95,8 +103,11 @@ public class FileController {
         if (file.exists()) {
             ZeroCopyHttpOutputMessage zeroCopyResponse = (ZeroCopyHttpOutputMessage) response;
             String filename = Paths.get(absoluteFilePath).getFileName().toString();
-            response.getHeaders().set(HttpHeaders.CONTENT_DISPOSITION, dispositionType + "; filename=" + filename);
-            response.getHeaders().setContentType(MediaType.parseMediaType(URLConnection.guessContentTypeFromName(filename)));
+            if (dispositionType != null) {
+                response.getHeaders().set(HttpHeaders.CONTENT_DISPOSITION, dispositionType + "; filename=" + filename);
+            }
+            String mediaType = URLConnection.guessContentTypeFromName(filename);
+            if (mediaType != null) response.getHeaders().setContentType(MediaType.parseMediaType(mediaType));
             return zeroCopyResponse.writeWith(file, 0, file.length());
         } else {
             log.warn("本地文件[{}]不存在", absoluteFilePath);

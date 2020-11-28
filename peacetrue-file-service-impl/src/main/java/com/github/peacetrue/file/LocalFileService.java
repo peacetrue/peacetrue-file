@@ -1,20 +1,18 @@
 package com.github.peacetrue.file;
 
+import com.github.peacetrue.util.DateTimeFormatterUtils2;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.util.FileCopyUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.Objects;
-
-import static com.github.peacetrue.util.DateTimeFormatterUtils.*;
 
 /**
  * 本地文件服务
@@ -45,24 +43,16 @@ public class LocalFileService implements FileService {
         }
     }
 
-    /** formatter: yyyy/MM/dd */
-    public static DateTimeFormatter COMMON_DATE_TIME = new DateTimeFormatterBuilder()
-            .parseCaseInsensitive()
-            .append(YEAR)
-            .appendLiteral('/')
-            .append(MONTH)
-            .appendLiteral('/')
-            .append(DATE)
-            .toFormatter();
-
     @Override
     public String buildRelativeFilePath(String filename) {
-        return COMMON_DATE_TIME.format(LocalDateTime.now()) + "/" + filename;
+        return DateTimeFormatterUtils2.SEPARATOR_DATE_TIME.format(LocalDateTime.now())
+                + (filename.startsWith(File.separator) ? "" : File.separator)
+                + filename;
     }
 
     @Override
     public String getAbsoluteFilePath(String relativeFilePath) {
-        return basePath + "/" + relativeFilePath;
+        return basePath + (relativeFilePath.startsWith(File.separator) ? "" : File.separator) + relativeFilePath;
     }
 
     @Override
@@ -70,7 +60,7 @@ public class LocalFileService implements FileService {
         Resource resource = null;
         log.info("上传文件[{}]到本地", resource);
         String filename = resource.getFilename();
-        String filePath = basePath + "/" + filename;
+        String filePath = basePath + File.separator + filename;
         Path path = Paths.get(filePath);
         if (Files.notExists(path)) Files.createFile(path);
         FileCopyUtils.copy(resource.getInputStream(), Files.newOutputStream(path));
