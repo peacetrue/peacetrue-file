@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URLConnection;
 import java.nio.file.Paths;
@@ -62,8 +63,8 @@ public class FileController {
     }
 
     public static final String DOWNLOAD_TYPE_PREVIEW = "preview";
-    public static final String DISPOSITION_TYPE_INLINE = "inline";
-    public static final String DISPOSITION_TYPE_ATTACHMENT = "attachment";
+    public static final String DISPOSITION_TYPE_INLINE = "inline",
+            DISPOSITION_TYPE_ATTACHMENT = "attachment";
 
     public static Mono<Void> downloadLocalFile(ServerHttpResponse response, String absoluteFilePath,
                                                boolean isAjax, String type) {
@@ -75,16 +76,19 @@ public class FileController {
         return writeLocalFile(response, dispositionType, absoluteFilePath);
     }
 
-    public static Mono<Void> writeLocalFile(ServerHttpResponse response, String dispositionType, String absoluteFilePath) {
+    public static Mono<Void> writeLocalFile(ServerHttpResponse response, @Nullable String dispositionType, String absoluteFilePath) {
+        return writeLocalFile(response, dispositionType, absoluteFilePath, Paths.get(absoluteFilePath).getFileName().toString());
+    }
+
+    public static Mono<Void> writeLocalFile(ServerHttpResponse response, @Nullable String dispositionType, String absoluteFilePath, String fileName) {
         log.debug("输出本地文件[{}]", absoluteFilePath);
         File file = new File(absoluteFilePath);
         if (file.exists()) {
             ZeroCopyHttpOutputMessage zeroCopyResponse = (ZeroCopyHttpOutputMessage) response;
-            String filename = Paths.get(absoluteFilePath).getFileName().toString();
             if (dispositionType != null) {
-                response.getHeaders().set(HttpHeaders.CONTENT_DISPOSITION, dispositionType + "; filename=" + filename);
+                response.getHeaders().set(HttpHeaders.CONTENT_DISPOSITION, dispositionType + "; filename=" + fileName);
             }
-            String mediaType = URLConnection.guessContentTypeFromName(filename);
+            String mediaType = URLConnection.guessContentTypeFromName(fileName);
             if (mediaType != null) response.getHeaders().setContentType(MediaType.parseMediaType(mediaType));
             return zeroCopyResponse.writeWith(file, 0, file.length());
         } else {

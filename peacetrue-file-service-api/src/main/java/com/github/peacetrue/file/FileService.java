@@ -3,8 +3,6 @@ package com.github.peacetrue.file;
 import org.springframework.http.codec.multipart.FilePart;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
-
 /**
  * @author : xiayx
  * @since : 2020-11-23 10:19
@@ -29,5 +27,8 @@ public interface FileService {
 
     /** 上传文件 */
     Mono<FileVO> upload(FilePart params);
+
+    /** 删除文件 */
+    Mono<Boolean> delete(String relativeFilePath);
 
 }

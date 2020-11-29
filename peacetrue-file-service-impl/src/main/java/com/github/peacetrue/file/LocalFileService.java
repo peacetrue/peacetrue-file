@@ -77,5 +77,13 @@ public class LocalFileService implements FileService {
                 });
     }
 
-
+    @Override
+    public Mono<Boolean> delete(String relativeFilePath) {
+        log.info("删除相对路径文件[{}]", relativeFilePath);
+        return Mono.fromCallable(() -> {
+            Path path = Paths.get(basePath).resolve(relativeFilePath);
+            log.info("删除绝对路径文件[{}]", path);
+            return Files.deleteIfExists(path);
+        });
+    }
 }
