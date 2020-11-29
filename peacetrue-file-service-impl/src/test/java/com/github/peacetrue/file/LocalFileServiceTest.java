@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.FileSystemResource;
 
 /**
  * @author : xiayx
@@ -26,7 +25,7 @@ class LocalFileServiceTest {
 
     @Test
     void upload() throws Exception {
-        FileVO fileVO = fileService.upload(new FileUploadDTO(new FileSystemResource("/Users/xiayx/Documents/Projects/peacetrue-file/peacetrue-file-service-impl/src/test/java/com/github/peacetrue/file/LocalFileServiceTest.java")));
-        System.out.println(fileVO);
+//        FileVO fileVO = fileService.upload(new FileUploadDTO(new FileSystemResource("/Users/xiayx/Documents/Projects/peacetrue-file/peacetrue-file-service-impl/src/test/java/com/github/peacetrue/file/LocalFileServiceTest.java")));
+//        System.out.println(fileVO);
     }
 }

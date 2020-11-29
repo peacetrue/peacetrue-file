@@ -15,10 +15,7 @@ import reactor.core.publisher.Mono;
 
 import java.io.File;
 import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.function.Function;
 
 /**
  * @author : xiayx
@@ -30,43 +27,24 @@ import java.util.function.Function;
 public class FileController {
 
     private FileService fileService;
-    private Function<FilePart, Mono<? extends FileVO>> filePartHandler;
 
     @Autowired
     public void setFileService(FileService fileService) {
         this.fileService = fileService;
-        this.filePartHandler = buildFilePartHandler(fileService);
-    }
-
-    public static Function<FilePart, Mono<? extends FileVO>> buildFilePartHandler(FileService fileService) {
-        return filePart -> {
-            String relativeFilePath = fileService.buildRelativeFilePath(filePart.filename());
-            Path absoluteFilePath = Paths.get(fileService.getAbsoluteFilePath(relativeFilePath));
-            Mono<Integer> transitionMono = Files.notExists(absoluteFilePath) ? Mono.fromCallable(() -> {
-                Files.createDirectories(absoluteFilePath.getParent());
-                Files.createFile(absoluteFilePath);
-                return 0;
-            }) : Mono.just(0);
-            return transitionMono
-                    .flatMap(ignored -> Mono.fromCallable(() -> Files.size(absoluteFilePath)))
-                    .flatMap(fileSize -> filePart.transferTo(absoluteFilePath)
-                            .thenReturn(new FileVO(filePart.filename(), relativeFilePath, fileSize))
-                    );
-        };
     }
 
     @ResponseBody
     @PostMapping(params = "fileCount=1")
     public Mono<FileVO> upload(@RequestPart("file") Mono<FilePart> files) {
         log.info("上传单个文件");
-        return files.flatMap(filePartHandler);
+        return files.flatMap(filePart -> fileService.upload(filePart));
     }
 
     @ResponseBody
-    @PostMapping
+    @PostMapping(params = "fileCount!=1")
     public Flux<FileVO> upload(@RequestPart("files") Flux<FilePart> files) {
         log.info("上传多个文件");
-        return files.flatMap(filePartHandler);
+        return files.flatMap(filePart -> fileService.upload(filePart));
     }
 
     @GetMapping(value = "/{*filePath}")

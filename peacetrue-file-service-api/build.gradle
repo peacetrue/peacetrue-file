@@ -1,3 +1,4 @@
 dependencies {
-//    implementation("org.springframework:spring-core")
+    implementation("org.springframework:spring-web")
+    implementation 'io.projectreactor:reactor-core:3.3.11.RELEASE'
 }

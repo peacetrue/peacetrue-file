@@ -2,6 +2,9 @@
 dependencies {
     api 'org.slf4j:slf4j-api'
     api project(":peacetrue-file-service-api")
+    implementation("org.springframework:spring-web")
+    //TODO version standardization
+    implementation 'io.projectreactor:reactor-core:3.3.11.RELEASE'
     implementation "com.github.peacetrue:peacetrue-core"
     implementation "org.springframework.boot:spring-boot-autoconfigure"
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"

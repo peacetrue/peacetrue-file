@@ -1,10 +1,11 @@
 package com.github.peacetrue.file;
 
 import com.github.peacetrue.util.DateTimeFormatterUtils2;
+import com.github.peacetrue.util.FileUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.Resource;
-import org.springframework.util.FileCopyUtils;
+import org.springframework.http.codec.multipart.FilePart;
+import reactor.core.publisher.Mono;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +26,7 @@ import java.util.Objects;
 public class LocalFileService implements FileService {
 
     /** 绝对物理路径 */
-    private String basePath;
+    private final String basePath;
 
     public LocalFileService(String basePath) {
         this.basePath = Objects.requireNonNull(basePath, "basePath must not be null").trim();
@@ -56,16 +57,24 @@ public class LocalFileService implements FileService {
     }
 
     @Override
-    public FileVO upload(FileUploadDTO params) throws IOException {
-        Resource resource = null;
-        log.info("上传文件[{}]到本地", resource);
-        String filename = resource.getFilename();
-        String filePath = basePath + File.separator + filename;
-        Path path = Paths.get(filePath);
-        if (Files.notExists(path)) Files.createFile(path);
-        FileCopyUtils.copy(resource.getInputStream(), Files.newOutputStream(path));
-        //return new FileVO(filename, filePath);
-        return null;
+    public Mono<FileVO> upload(FilePart params) {
+        String relativeFilePath = this.buildRelativeFilePath(params.filename());
+        //TODO 并发问题，从探测文件存在到创建出文件
+        Path absoluteFilePath = FileUtils.generateUniquePath(
+                Paths.get(this.getAbsoluteFilePath(relativeFilePath))
+        );
+
+        return Mono.fromCallable(() -> {
+            Files.createDirectories(absoluteFilePath.getParent());
+            Files.createFile(absoluteFilePath);
+            return 0;
+        })
+                .doOnNext(ignored -> params.transferTo(absoluteFilePath))
+                .flatMap(ignored -> Mono.fromCallable(() -> Files.size(absoluteFilePath)))
+                .map(fileSize -> {
+                    String relativePath = absoluteFilePath.toString().substring(basePath.length() + 1);
+                    return new FileVO(params.filename(), relativePath, fileSize);
+                });
     }
 
 

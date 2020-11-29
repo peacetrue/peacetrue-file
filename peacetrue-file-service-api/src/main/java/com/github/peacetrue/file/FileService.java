@@ -1,5 +1,8 @@
 package com.github.peacetrue.file;
 
+import org.springframework.http.codec.multipart.FilePart;
+import reactor.core.publisher.Mono;
+
 import java.io.IOException;
 
 /**
@@ -24,8 +27,7 @@ public interface FileService {
      */
     String getAbsoluteFilePath(String relativeFilePath);
 
-
-    /** 上传文件，此接口未确定 */
-    FileVO upload(FileUploadDTO params) throws IOException;
+    /** 上传文件 */
+    Mono<FileVO> upload(FilePart params);
 
 }
