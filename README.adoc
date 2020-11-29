@@ -1,4 +1,4 @@
-= 文件上传
+= 文件管理
 xiayx <xiayouxue@hotmail.com>
 v1.0, 2020-11-23: SNAPSHOT
 :doctype: docbook
@@ -10,4 +10,4 @@ v1.0, 2020-11-23: SNAPSHOT
 :testsourcedir: src/test/java
 :source-highlighter: highlightjs
 
-详情参考 https://peacetrue.cn/summarize/peacetrue-upload/index.html[安宁的博客^]。
+详情参考 https://peacetrue.cn/summarize/peacetrue-file/index.html[安宁的博客^]。
