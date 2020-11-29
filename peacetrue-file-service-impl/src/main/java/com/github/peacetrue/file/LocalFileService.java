@@ -5,6 +5,7 @@ import com.github.peacetrue.util.FileUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.util.FileSystemUtils;
 import reactor.core.publisher.Mono;
 
 import java.io.File;
@@ -83,7 +84,9 @@ public class LocalFileService implements FileService {
         return Mono.fromCallable(() -> {
             Path path = Paths.get(basePath).resolve(relativeFilePath);
             log.info("删除绝对路径文件[{}]", path);
-            return Files.deleteIfExists(path);
+            return Files.isDirectory(path)
+                    ? FileSystemUtils.deleteRecursively(path)
+                    : Files.deleteIfExists(path);
         });
     }
 }
