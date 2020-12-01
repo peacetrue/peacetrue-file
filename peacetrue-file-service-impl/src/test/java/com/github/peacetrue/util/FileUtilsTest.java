@@ -18,11 +18,11 @@ class FileUtilsTest {
     @Test
     void generateUniquePath() throws IOException {
         String sourceAbsolutePath = TestUtils.getSourceAbsolutePath(FileUtilsTest.class);
-        Path path = FileUtils.generateUniquePath(Paths.get(sourceAbsolutePath + ".java"));
+        Path path = FileFileUtils.generateUniquePath(Paths.get(sourceAbsolutePath + ".java"));
         Assertions.assertEquals(sourceAbsolutePath + "(1).java", path.toString());
         Files.createFile(path);
 
-        Path path2 = FileUtils.generateUniquePath(Paths.get(sourceAbsolutePath + ".java"));
+        Path path2 = FileFileUtils.generateUniquePath(Paths.get(sourceAbsolutePath + ".java"));
         Assertions.assertEquals(sourceAbsolutePath + "(2).java", path2.toString());
         Files.deleteIfExists(path);
     }

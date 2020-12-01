@@ -1,7 +1,12 @@
 package com.github.peacetrue.file;
 
-import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import javax.annotation.Nullable;
 
 /**
  * @author : xiayx
@@ -9,26 +14,27 @@ import reactor.core.publisher.Mono;
  **/
 public interface FileService {
 
-    /**
-     * 根据文件名构建相对文件路径
-     *
-     * @param filename 文件名，例如：a.txt
-     * @return 相对文件路径，例如：2020/11/20/a.txt
-     */
-    String buildRelativeFilePath(String filename);
+    String getAbsolutePath(String path);
 
-    /**
-     * 根据上传文件相对路径获取文件绝对路径
-     *
-     * @param relativeFilePath 相对文件路径，{@link #buildRelativeFilePath(String)} 返回的路径
-     * @return 绝对文件路径，例如：/Users/zhangsan/2020/11/20/a.txt
-     */
-    String getAbsoluteFilePath(String relativeFilePath);
+    /** 新增 */
+    Mono<FileVO> add(FileAdd params);
 
-    /** 上传文件 */
-    Mono<FileVO> upload(FilePart params);
+    /** 分页查询 */
+    Mono<Page<FileVO>> query(@Nullable FileQuery params, @Nullable Pageable pageable, String... projection);
 
-    /** 删除文件 */
-    Mono<Boolean> delete(String relativeFilePath);
+    /** 全量查询 */
+    Flux<FileVO> query(@Nullable FileQuery params, @Nullable Sort sort, String... projection);
+
+    /** 全量查询 */
+    default Flux<FileVO> query(FileQuery params, String... projection) {
+        return this.query(params, (Sort) null, projection);
+    }
+
+    /** 获取 */
+    Mono<FileVO> get(FileGet params, String... projection);
+
+    /** 删除 */
+    Mono<Integer> delete(FileDelete params);
+
 
 }

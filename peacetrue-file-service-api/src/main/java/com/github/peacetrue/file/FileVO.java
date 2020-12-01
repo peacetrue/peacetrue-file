@@ -19,8 +19,12 @@ public class FileVO implements Serializable {
 
     private static final long serialVersionUID = 0L;
 
+    private String id;
     private String name;
-    private String path;
+    private Boolean folder;
     private Long sizes;
 
+    public String getPath() {
+        return id;
+    }
 }

@@ -6,6 +6,7 @@ dependencies {
     //TODO version standardization
     implementation 'io.projectreactor:reactor-core:3.3.11.RELEASE'
     implementation "com.github.peacetrue:peacetrue-core"
+    implementation "com.github.peacetrue:peacetrue-spring"
     implementation "org.springframework.boot:spring-boot-autoconfigure"
     compileOnly "org.springframework.boot:spring-boot-configuration-processor"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"

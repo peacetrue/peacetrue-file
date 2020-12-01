@@ -1,4 +1,10 @@
 dependencies {
-    implementation("org.springframework:spring-web")
-    implementation 'io.projectreactor:reactor-core:3.3.11.RELEASE'
+    api 'com.github.peacetrue:peacetrue-core'
+    api 'com.google.code.findbugs:jsr305'
+    api 'io.projectreactor:reactor-core'
+    api 'org.springframework.data:spring-data-commons'
+    api 'org.springframework:spring-web'
+
+    compileOnly 'javax.validation:validation-api'
+    compileOnly 'com.github.peacetrue:peacetrue-validation'
 }
