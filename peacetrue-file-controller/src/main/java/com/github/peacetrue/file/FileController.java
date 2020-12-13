@@ -33,17 +33,17 @@ public class FileController {
     private FileService fileService;
 
     @ResponseBody
-    @PostMapping(params = "fileCount=1")
+    @PostMapping
     public Mono<FileVO> add(Mono<FileAdd> mono) {
         log.info("上传单个文件");
         return mono.flatMap(param -> fileService.add(param));
     }
 
     @ResponseBody
-    @PostMapping(params = "fileCount!=1")
-    public Flux<FileVO> add(Flux<FileAdd> flux) {
+    @PostMapping(params = "type=multiple")
+    public Flux<FileVO> addFiles(Mono<FilesAdd> mono) {
         log.info("上传多个文件");
-        return flux.flatMap(fileAdd -> fileService.add(fileAdd));
+        return mono.flatMapMany(filesAdd -> fileService.add(filesAdd));
     }
 
     @ResponseBody

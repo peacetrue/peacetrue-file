@@ -19,6 +19,9 @@ public interface FileService {
     /** 新增 */
     Mono<FileVO> add(FileAdd params);
 
+    /** 新增 */
+    Flux<FileVO> add(FilesAdd params);
+
     /** 分页查询 */
     Mono<Page<FileVO>> query(@Nullable FileQuery params, @Nullable Pageable pageable, String... projection);
 

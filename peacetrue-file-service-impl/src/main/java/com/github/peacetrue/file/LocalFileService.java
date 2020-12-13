@@ -11,6 +11,7 @@ import org.springframework.context.PayloadApplicationEvent;
 import org.springframework.data.domain.*;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.util.FileSystemUtils;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -53,7 +54,7 @@ public class LocalFileService implements FileService {
 
     @Override
     public Mono<FileVO> add(FileAdd params) {
-        log.info("新增文件[{}]", params);
+        log.info("新增单个文件[{}]", params);
         FilePart filePart = params.getFilePart();
         String relativePath = params.getRelativePath() == null
                 ? FileUtils.buildDateRelativePath()
@@ -69,6 +70,24 @@ public class LocalFileService implements FileService {
                 .doOnNext(ignored -> filePart.transferTo(newAbsoluteFilePath))
                 .flatMap(ignored -> map(newAbsoluteFilePath, newAbsoluteFilePath.toString().substring(absoluteBasePath.length() + 1)))
                 .doOnNext(vo -> eventPublisher.publishEvent(new PayloadApplicationEvent<>(vo, params)));
+    }
+
+    @Override
+    public Flux<FileVO> add(FilesAdd params) {
+        log.info("新增多个文件[{}]", params);
+        String relativePath = params.getRelativePath() == null
+                ? FileUtils.buildDateRelativePath()
+                : FileUtils.formatRelativePath(params.getRelativePath());
+        Path absoluteFolderPath = absoluteBasePathObject.resolve(relativePath);
+        return Mono.fromCallable(() -> Files.createDirectories(absoluteFolderPath))
+                .flatMapMany(path -> Flux.fromArray(params.getFilePart())
+                        .flatMap(filePart -> Mono.fromCallable(() -> {
+                                    Path newPath = FileUtils.buildNewPath(path.resolve(filePart.filename()));
+                                    return Files.createFile(newPath);
+                                }).zipWith(Mono.just(filePart))
+                        )
+                        .flatMap(tuple2 -> tuple2.getT2().transferTo(tuple2.getT1()).thenReturn(tuple2))
+                        .flatMap(tuple2 -> map(tuple2.getT1(), tuple2.getT1().toString().substring(absoluteBasePath.length() + 1))));
     }
 
     @Override
@@ -129,7 +148,19 @@ public class LocalFileService implements FileService {
 
     @Override
     public Flux<FileVO> query(FileQuery params, @Nullable Sort sort, String... projection) {
-        return this.query(params, projection);
+        log.info("分页查询文件");
+        FileQuery finalParams = params == null ? FileQuery.DEFAULT : params;
+        if (sort == null) sort = Sort.by(Sort.Direction.DESC, "folder");
+        boolean noPath = finalParams.getPath() == null || finalParams.getPath().length == 0;
+        Path absolutePath = noPath ? absoluteBasePathObject : absoluteBasePathObject.resolve(finalParams.getPath()[0]);
+        return Mono.fromCallable(() -> Files.list(absolutePath))
+                .flatMapMany(Flux::fromStream)
+                .flatMap(path -> map(path, path.toString().substring(absoluteBasePath.length() + 1)))
+                .sort(sort(sort))
+                .filter(fileVO -> filter(fileVO, finalParams))
+                .limitRequest(100)
+                ;
+
     }
 
     @Override
@@ -143,6 +174,10 @@ public class LocalFileService implements FileService {
     public Mono<Integer> delete(FileDelete params) {
         log.info("删除文件[{}]", params);
         String relativePath = FileUtils.formatRelativePath(params.getId());
+        if (StringUtils.isEmpty(relativePath)) {
+            log.warn("不允许删除根目录");
+            return Mono.just(0);
+        }
         Path absoluteFilePath = absoluteBasePathObject.resolve(relativePath);
         return Mono.fromCallable(() -> Files.isDirectory(absoluteFilePath)
                 ? FileSystemUtils.deleteRecursively(absoluteFilePath)
