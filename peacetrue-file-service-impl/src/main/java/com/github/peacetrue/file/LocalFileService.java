@@ -1,5 +1,7 @@
 package com.github.peacetrue.file;
 
+import com.github.peacetrue.result.ResultType;
+import com.github.peacetrue.result.exception.ResultException;
 import com.github.peacetrue.spring.util.BeanUtils;
 import com.github.peacetrue.util.FileUtils;
 import com.github.peacetrue.util.StreamUtils;
@@ -44,6 +46,9 @@ public class LocalFileService implements FileService {
         this.absoluteBasePathObject = Paths.get(absoluteBasePath);
         if (Files.notExists(this.absoluteBasePathObject)) {
             throw new IllegalArgumentException(String.format("absoluteBasePath[%s] not exists, create it first", absoluteBasePath));
+        }
+        if (!Files.isDirectory(this.absoluteBasePathObject)) {
+            throw new IllegalArgumentException(String.format("absoluteBasePath[%s] must be folder", absoluteBasePath));
         }
     }
 
@@ -160,7 +165,6 @@ public class LocalFileService implements FileService {
                 .filter(fileVO -> filter(fileVO, finalParams))
                 .limitRequest(100)
                 ;
-
     }
 
     @Override
@@ -175,8 +179,7 @@ public class LocalFileService implements FileService {
         log.info("删除文件[{}]", params);
         String relativePath = FileUtils.formatRelativePath(params.getId());
         if (StringUtils.isEmpty(relativePath)) {
-            log.warn("不允许删除根目录");
-            return Mono.just(0);
+            return Mono.error(new ResultException(ResultType.failure.name(), "不允许直接删除【基础目录】下的所有文件"));
         }
         Path absoluteFilePath = absoluteBasePathObject.resolve(relativePath);
         return Mono.fromCallable(() -> Files.isDirectory(absoluteFilePath)

@@ -1,5 +1,5 @@
-name: peacetrue-upload
-title: gradle 模板项目
+name: peacetrue-file
+title: 文件管理
 version: master
 start_page: ROOT:index.adoc
 nav:

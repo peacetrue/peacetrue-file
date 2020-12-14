@@ -60,19 +60,19 @@ public class FileController {
         return fileService.query(params, sort, projection);
     }
 
-    @ResponseBody
-    @GetMapping("/{*id}")
-    public Mono<FileVO> getByUrlPathVariable(@PathVariable String id, String... projection) {
-        log.info("获取文件信息(请求方法+路径变量)详情[{}]", id);
-        return fileService.get(new FileGet(id), projection);
-    }
-
-    @ResponseBody
-    @RequestMapping("/get")
-    public Mono<FileVO> getByPath(FileGet params, String... projection) {
-        log.info("获取文件信息(请求路径+参数变量)详情[{}]", params);
-        return fileService.get(params, projection);
-    }
+//    @ResponseBody
+//    @GetMapping("/{*id}")
+//    public Mono<FileVO> getByUrlPathVariable(@PathVariable String id, String... projection) {
+//        log.info("获取文件信息(请求方法+路径变量)详情[{}]", id);
+//        return fileService.get(new FileGet(id), projection);
+//    }
+//
+//    @ResponseBody
+//    @RequestMapping("/get")
+//    public Mono<FileVO> getByPath(FileGet params, String... projection) {
+//        log.info("获取文件信息(请求路径+参数变量)详情[{}]", params);
+//        return fileService.get(params, projection);
+//    }
 
     @ResponseBody
     @DeleteMapping("/{*id}")
@@ -95,7 +95,7 @@ public class FileController {
         return fileService.delete(params);
     }
 
-    @GetMapping(value = "/{*filePath}", params = "dispositionType")
+    @GetMapping(value = "/{*filePath}")
     public Mono<Void> download(ServerHttpResponse response,
                                @PathVariable String filePath,
                                @RequestHeader(name = "X-Requested-With", required = false) String requestedWithHeader,
