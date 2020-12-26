@@ -1,12 +1,10 @@
 package com.github.peacetrue.file;
 
-import com.github.peacetrue.core.OperatorCapableImpl;
 import lombok.*;
 import org.springframework.http.codec.multipart.FilePart;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.List;
 
 
 /**
@@ -17,12 +15,11 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class FilesAdd extends OperatorCapableImpl<Long> {
+public class FilesAdd extends AbstractFileAdd {
 
-    private static final long serialVersionUID = 0L;
-
-    @Size(max = 255)
-    private String relativePath;
+    /** 基础索引名 */
+    @Size(max = 32)
+    private int baseIndex = 0;
     @NotNull
     private FilePart[] filePart;
 

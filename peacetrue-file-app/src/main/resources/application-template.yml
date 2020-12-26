@@ -1,0 +1,6 @@
+peacetrue:
+  file:
+    base-path: /root/peacetrue/peacetrue-file
+logging:
+  level:
+    root: info

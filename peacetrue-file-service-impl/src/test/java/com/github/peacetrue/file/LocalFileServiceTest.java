@@ -25,7 +25,7 @@ class LocalFileServiceTest {
 
     @Test
     void upload() throws Exception {
-//        FileVO fileVO = fileService.upload(new FileUploadDTO(new FileSystemResource("/Users/xiayx/Documents/Projects/peacetrue-file/peacetrue-file-service-impl/src/test/java/com/github/peacetrue/file/LocalFileServiceTest.java")));
+//        FileVO fileVO = fileService.add(new FileAdd());
 //        System.out.println(fileVO);
     }
 }

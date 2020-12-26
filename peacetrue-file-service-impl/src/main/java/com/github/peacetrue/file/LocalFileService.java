@@ -9,11 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.PayloadApplicationEvent;
 import org.springframework.data.domain.*;
-import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuples;
 
 import javax.annotation.Nullable;
 import java.nio.file.Files;
@@ -52,23 +52,39 @@ public class LocalFileService implements FileService {
         return FileUtils.concat(absoluteBasePath, path);
     }
 
+    /**
+     * replaceFileName("a/b/c.txt","d")="a/b/c-1.txt"
+     */
+    public static String indexFileName(String filePath, Object index) {
+        return filePath.replaceFirst("([^/\\\\]+)(\\.[^.]+)$", String.format("$1-%s$2", index));
+    }
+
+    public static void main(String[] args) {
+        System.out.println(indexFileName("a/b/c.txt", 1));
+    }
+
     @Override
     public Mono<FileVO> add(FileAdd params) {
         log.info("新增单个文件[{}]", params);
-        FilePart filePart = params.getFilePart();
         String relativePath = params.getRelativePath() == null
                 ? FileUtils.buildDateRelativePath()
                 : FileUtils.formatRelativePath(params.getRelativePath());
-        //TODO 并发问题，从探测文件存在到创建出文件
-        Path absoluteFilePath = absoluteBasePathObject.resolve(relativePath).resolve(filePart.filename());
-        Path newAbsoluteFilePath = FileUtils.buildNewPath(absoluteFilePath);
+        String fileName = params.getFileName() == null
+                ? params.getFilePart().filename()
+                : params.getFileName();
         return Mono.fromCallable(() -> {
-            Files.createDirectories(newAbsoluteFilePath.getParent());
-            Files.createFile(newAbsoluteFilePath);
-            return 0;
+            //TODO 并发问题，从探测文件存在到创建出文件
+            Path absoluteFilePath = absoluteBasePathObject.resolve(relativePath).resolve(fileName);
+            if (!Boolean.TRUE.equals(params.getOverwrite()))
+                absoluteFilePath = FileUtils.buildNewPath(absoluteFilePath);
+            if (Files.notExists(absoluteFilePath)) {
+                Files.createDirectories(absoluteFilePath.getParent());
+                Files.createFile(absoluteFilePath);
+            }
+            return absoluteFilePath;
         })
-                .doOnNext(ignored -> filePart.transferTo(newAbsoluteFilePath))
-                .flatMap(ignored -> map(newAbsoluteFilePath, newAbsoluteFilePath.toString().substring(absoluteBasePath.length() + 1)))
+                .doOnNext(absoluteFilePath -> params.getFilePart().transferTo(absoluteFilePath))
+                .flatMap(absoluteFilePath -> map(absoluteFilePath, absoluteFilePath.toString().substring(absoluteBasePath.length() + 1)))
                 .doOnNext(vo -> eventPublisher.publishEvent(new PayloadApplicationEvent<>(vo, params)));
     }
 
@@ -78,16 +94,26 @@ public class LocalFileService implements FileService {
         String relativePath = params.getRelativePath() == null
                 ? FileUtils.buildDateRelativePath()
                 : FileUtils.formatRelativePath(params.getRelativePath());
-        Path absoluteFolderPath = absoluteBasePathObject.resolve(relativePath);
-        return Mono.fromCallable(() -> Files.createDirectories(absoluteFolderPath))
-                .flatMapMany(path -> Flux.fromArray(params.getFilePart())
-                        .flatMap(filePart -> Mono.fromCallable(() -> {
-                                    Path newPath = FileUtils.buildNewPath(path.resolve(filePart.filename()));
-                                    return Files.createFile(newPath);
-                                }).zipWith(Mono.just(filePart))
-                        )
-                        .flatMap(tuple2 -> tuple2.getT2().transferTo(tuple2.getT1()).thenReturn(tuple2))
-                        .flatMap(tuple2 -> map(tuple2.getT1(), tuple2.getT1().toString().substring(absoluteBasePath.length() + 1))));
+        return Mono.fromCallable(() -> Files.createDirectories(absoluteBasePathObject.resolve(relativePath)))
+                .flatMapMany(absoluteFolderPath ->
+                        Flux.fromArray(params.getFilePart())
+                                .index((aLong, filePart) -> Tuples.of(aLong + params.getBaseIndex(), filePart))
+                                .flatMap(tuple2 ->
+                                        Mono.fromCallable(() -> {
+                                            String fileName = params.getFileName() == null
+                                                    ? tuple2.getT2().filename()
+                                                    : indexFileName(params.getFileName(), tuple2.getT1());
+                                            Path absoluteFilePath = absoluteFolderPath.resolve(fileName);
+                                            if (!Boolean.TRUE.equals(params.getOverwrite()))
+                                                absoluteFilePath = FileUtils.buildNewPath(absoluteFilePath);
+                                            return Files.notExists(absoluteFilePath)
+                                                    ? Files.createFile(absoluteFilePath)
+                                                    : absoluteFilePath;
+                                        }).zipWith(Mono.just(tuple2.getT2()))
+                                )
+                                .flatMap(tuple2 -> tuple2.getT2().transferTo(tuple2.getT1()).thenReturn(tuple2))
+                                .flatMap(tuple2 -> map(tuple2.getT1(), tuple2.getT1().toString().substring(absoluteBasePath.length() + 1)))
+                );
     }
 
     @Override
