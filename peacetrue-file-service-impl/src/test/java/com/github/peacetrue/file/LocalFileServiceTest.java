@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * @author : xiayx
@@ -17,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
                 "peacetrue.file.basePath=/Users/xiayx/Documents/Projects/peacetrue-file/peacetrue-file-service-impl/src/test/resources"
         }
 )
+@ActiveProfiles("attachment-service-test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class LocalFileServiceTest {
 

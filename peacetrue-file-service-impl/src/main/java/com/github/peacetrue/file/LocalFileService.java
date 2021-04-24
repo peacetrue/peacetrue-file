@@ -178,7 +178,7 @@ public class LocalFileService implements FileService {
     public Mono<Integer> delete(FileDelete params) {
         log.info("删除文件[{}]", params);
         String relativePath = FileUtils.formatRelativePath(params.getId());
-        if (StringUtils.isEmpty(relativePath)) {
+        if (StringUtils.hasLength(relativePath)) {
             return Mono.error(new ResultException(ResultType.failure.name(), "不允许直接删除【基础目录】下的所有文件"));
         }
         Path absoluteFilePath = absoluteBasePathObject.resolve(relativePath);

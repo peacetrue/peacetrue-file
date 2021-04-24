@@ -3,8 +3,7 @@ dependencies {
     api 'org.slf4j:slf4j-api'
     api project(":peacetrue-file-service-api")
     implementation("org.springframework:spring-web")
-    //TODO version standardization
-    implementation 'io.projectreactor:reactor-core:3.3.11.RELEASE'
+    implementation 'io.projectreactor:reactor-core'
     implementation "com.github.peacetrue:peacetrue-core"
     implementation "com.github.peacetrue:peacetrue-spring"
     implementation "com.github.peacetrue:peacetrue-result"
